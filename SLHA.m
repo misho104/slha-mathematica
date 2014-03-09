@@ -25,8 +25,9 @@ Begin["`Private`"];
 (* ----------------------------------------------------------------------
       Low Level Tools
    ---------------------------------------------------------------------- *)
-ReadNumber[str_] :=Read[StringToStream[str],Number]
-
+ReadNumber[x_List]   := ReadNumber /@ x;
+ReadNumber[x_String] := Read[StringToStream[x],Number]
+ReadNumberAtFirst[x_List] := ReplacePart[x, 1 -> ReadNumber[x[[1]]]];
 
 (* ----------------------------------------------------------------------
       READ
@@ -49,7 +50,12 @@ LinesToBlocks[lines_]:=Module[{data,blockname,q},
         ];
         Sow[#,blockname],
         If[blockname=="",Message[ReadSLHA::OrphanLineFound,#];Abort[]];
-        Sow[{ReadNumber/@#[[1]],#[[2]]},blockname]
+        (* SPINFO block contains string value *)
+        If[blockname=="SPINFO",
+          Sow[{ReadNumberAtFirst[#[[1]]],#[[2]]},blockname]
+        ,
+          Sow[{ReadNumber[#[[1]]],#[[2]]},blockname]
+        ];
       ];
     )&/@data
   ][[2]]
