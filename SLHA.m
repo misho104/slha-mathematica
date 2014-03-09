@@ -17,8 +17,11 @@ BeginPackage["SLHA`"];
 (* ---------------------------------------------------------------------- *)
 (* Usage Messages                                                         *)
 (* ---------------------------------------------------------------------- *)
-ReadSLHA::usage = "ReadSLHA[filename] reads the SLHA file and returns SLHA data.";
-Data::usage     = "Data[SLHA, blockname, keys...] returns the corresponding data.";
+ReadSLHA::usage  = "ReadSLHA[filename] reads the SLHA file and returns SLHA data.";
+Data::usage      = "Data[SLHA, blockname, keys...] returns the corresponding data.";
+Decay::usage     = "Decay[SLHA, pid] returns decay data of the particle pid.";
+Width::usage     = "Width[SLHA, pid] returns the decay width of the particle pid.";
+Br::usage        = "Br[SLHA, pid, {daughters}] returns BR(pid -> daughters).";
 WriteSLHA::usage = "ReadSLHA[filename, SLHA] writes the SLHA data to the file.";
 
 Begin["`Private`"];
@@ -29,33 +32,58 @@ ReadNumber[x_List]   := ReadNumber /@ x;
 ReadNumber[x_String] := Read[StringToStream[x],Number]
 ReadNumberAtFirst[x_List] := ReplacePart[x, 1 -> ReadNumber[x[[1]]]];
 
+ReadDecayLine[x_List] := Module[{values},
+  values = ReadNumber[x];
+  If[Or[Length[values] < 2, Length[values] != 2+values[[2]]],
+    Message[ReadSLHA::InvalidLineFound, Join[str, " "]]
+  ];
+  Join[values[[;; 2]], Sort[values[[3 ;;]]]]
+];
+
 (* ----------------------------------------------------------------------
       READ
    ---------------------------------------------------------------------- *)
+ReadSLHA::InvalidLineFound="Invalid lines found: `1`.";
 ReadSLHA::OrphanLineFound="Lines with no block found: `1`.";
 ReadSLHA::InvalidBlockLineFound="Invalid lines found: `1`.";
 ReadSLHA[inputfilename_]:=LinesToBlocks[ReadList[inputfilename,Record]]
 
-LinesToBlocks[lines_]:=Module[{data,blockname,q},
+LinesToBlocks[lines_]:=Module[{data,blockname,pid,key,q},
   data=Select[LineSplitWithComments/@lines,Length[#[[1]]]>0&];
   blockname="";
   Reap[
     (
-      If[ToUpperCase[#[[1,1]]]=="BLOCK",
-        blockname=ToUpperCase[#[[1,2]]];
-        Sow[blockname,blockname];
-        If[And[Length[#[[1]]]>=3, (q = ParseQRule[StringJoin[ToString/@#[[1,3;;]]]])!=""],
-          Sow[{"Q"->ReadNumber[q]},blockname],
-          Sow[{},blockname]
-        ];
-        Sow[#,blockname],
-        If[blockname=="",Message[ReadSLHA::OrphanLineFound,#];Abort[]];
-        (* SPINFO block contains string value *)
-        If[blockname=="SPINFO",
-          Sow[{ReadNumberAtFirst[#[[1]]],#[[2]]},blockname]
-        ,
-          Sow[{ReadNumber[#[[1]]],#[[2]]},blockname]
-        ];
+      Which[
+        ToUpperCase[#[[1,1]]] == "BLOCK",
+          blockname=ToUpperCase[#[[1,2]]];
+          Sow[blockname,blockname];
+          If[And[Length[#[[1]]]>=3, (q = ParseQRule[StringJoin[ToString/@#[[1,3;;]]]])!=""],
+            Sow[{"Q"->ReadNumber[q]},blockname]
+          ,
+            Sow[{},blockname]
+          ];
+          Sow[#,blockname], (* Sow the line again. *)
+        ToUpperCase[#[[1,1]]] == "DECAY",
+          If[length[#[[1]]] != 3,
+            Message[ReadSLHA::InvalidBlockLine,str];
+            Abort[];
+          ];
+          blockname = ToUpperCase[#[[1,1]] <> " " <> #[[1,2]]]; (* ex. "DECAY 1000006" *)
+          Sow[blockname,blockname];
+          Sow[{"WIDTH"->ReadNumber[#[[1,3]]]}, blockname];
+          Sow[#,blockname], (* Sow the line again. *)
+        True,
+          Which[
+            blockname == "",
+              Message[ReadSLHA::OrphanLineFound,#];Abort[],
+            blockname == "SPINFO",
+              (* SPINFO block contains string value *)
+              Sow[{ReadNumberAtFirst[#[[1]]],#[[2]]},blockname],
+            StringPosition[blockname,"DECAY"] != {},
+              Sow[{ReadDecayLine[#[[1]]], #[[2]]}, blockname],
+            True,
+              Sow[{ReadNumber[#[[1]]],#[[2]]},blockname]
+          ];
       ];
     )&/@data
   ][[2]]
@@ -93,10 +121,22 @@ Data[SLHA_,blockname_,keys___]:=Module[{block,lines,keylist,keylength},
   If[Length[lines]>1,Message[Data::MultiColumnsFound,blockname,keylist]];
   lines[[1,1,-1]]
 ]
-Data::BlockNotFound="Block \"`1`\" not found.";
-Data::MultiBlocksFound="Block \"`1`\" found more than one. First one is used.";
-Data::ColumnNotFound="Column `2` in Block \"`1`\" not found.";
-Data::MultiColumnsFound="Column `2` in Block \"`1`\" found more than one. First one is used.";
+Decay[SLHA_, pid_Integer] :=
+  Module[{blockname, width, brs},
+   blockname = "DECAY " <> ToString[pid];
+   block = Select[SLHA, #[[1]] == ToUpperCase[blockname] &];
+   If[Length[block] == 0, Message[Data::BlockNotFound, blockname]; Abort[]];
+   If[Length[block] > 1, Message[Data::MultiBlocksFound, blockname]];
+   width = "WIDTH" //. block[[1, 2]];
+   brs = block[[1, 4 ;;, 1]];
+   {width, {#[[3 ;;]], #[[1]]} & /@ brs}
+   ];
+Width[SLHA_, pid_Integer] := Decay[SLHA, pid][[1]]
+Br[SLHA_, pid_Integer, x_List] := Module[{lines},
+  lines = Select[Decay[SLHA, pid][[2]], #[[1]] == Sort[x] &];
+  If[Length[lines] > 1, Message[Data::MultipleBrLineFound, pid, x]; Abort[]];
+  If[Length[lines] == 0, 0, lines[[1, 2]]]]
+
 (* ----------------------------------------------------------------------
       WRITE
    ---------------------------------------------------------------------- *)
