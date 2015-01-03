@@ -1,5 +1,5 @@
 (* ::Package:: *)
-(* Time-Stamp: <2015-01-03 02:10:55 misho> *)
+(* Time-Stamp: <2015-01-03 13:31:08 misho> *)
 
 BeginPackage["SLHA`"];
 
@@ -26,6 +26,8 @@ Decay::usage     = "Decay[SLHA, pid] returns decay data of the particle pid.";
 Width::usage     = "Width[SLHA, pid] returns the decay width of the particle pid.";
 Br::usage        = "Br[SLHA, pid, {daughters}] returns BR(pid -> daughters).";
 WriteSLHA::usage = "ReadSLHA[filename, SLHA] writes the SLHA data to the file.";
+WriteBlock::usage = "WriteBlock[ofs, block] is an internal command to output a block.";
+WriteBlockAsComment::usage = "WriteBlockAsComment[ofs, block] is an internal command to output a block as a comment.";
 
 Begin["`Private`"];
 (* ----------------------------------------------------------------------
@@ -130,7 +132,7 @@ GetData::BlockNotFound = "Block `1` required but not found.";
 GetData::ColumnNotFound = "Block `1` Column `2` required but not found.";
 GetData[SLHA_,blockname_,keys___] := Module[
     {v = Data[SLHA, blockname, keys]},
-    If[v == Null,
+    If[v === Null,
        If[Length[Select[SLHA,#[[1]]==ToUpperCase[blockname]&]] == 0,
           Message[GetData::BlockNotFound,blockname],
           Message[GetData::ColumnNotFound,blockname,{keys}]];
@@ -178,6 +180,11 @@ WriteSLHA[outputfilename_,SLHA_]:=Module[{ofs},
 WriteBlock[ofs_,block_]:=Module[{},
   WriteString[ofs,BuildBlockLine[block]];
   WriteString[ofs,BuildDataLine[block[[1]],#]]&/@block[[4;;]];
+  WriteString[ofs,"#\n"];
+]
+WriteBlockAsComment[ofs_,block_]:=Module[{},
+  WriteString[ofs,"#"<>BuildBlockLine[block]];
+  WriteString[ofs,StringReplacePart[BuildDataLine[block[[1]],#], "#", {1,1}]] & /@ block[[4;;]];
   WriteString[ofs,"#\n"];
 ]
 BuildBlockLine[block_]:=Module[{q},
