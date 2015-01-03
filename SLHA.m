@@ -1,5 +1,5 @@
 (* ::Package:: *)
-(* Time-Stamp: <2015-01-03 02:03:27 misho> *)
+(* Time-Stamp: <2015-01-03 02:10:55 misho> *)
 
 BeginPackage["SLHA`"];
 
@@ -21,6 +21,7 @@ BeginPackage["SLHA`"];
 ReadSLHA::usage  = "ReadSLHA[filename] reads the SLHA file and returns SLHA data.";
 Data::usage      = "Data[SLHA, blockname, keys...] returns the corresponding data, or Null.";
 GetData::usage   = "GetData[SLHA, blockname, keys...] is similar to Data, but does not allow Null.";
+GetBlock::usage  = "GetBlock[SLHA, blockname] copys the block.";
 Decay::usage     = "Decay[SLHA, pid] returns decay data of the particle pid.";
 Width::usage     = "Width[SLHA, pid] returns the decay width of the particle pid.";
 Br::usage        = "Br[SLHA, pid, {daughters}] returns BR(pid -> daughters).";
@@ -135,6 +136,13 @@ GetData[SLHA_,blockname_,keys___] := Module[
           Message[GetData::ColumnNotFound,blockname,{keys}]];
        Abort[]];
     v];
+
+GetBlock[slha_, blockname_] := Module[
+    {d},
+    d = Select[slha, #[[1]] == ToUpperCase[blockname]&];
+    If[Length[d] == 0, Return[]];
+    If[Length[d] > 1, Message[Global::MultiBlocksFound, blockname]; Abort[]];
+    d[[1]]];
 
 Decay[SLHA_, pid_Integer] :=
   Module[{blockname, width, brs},
