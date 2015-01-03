@@ -1,4 +1,5 @@
 (* ::Package:: *)
+(* Time-Stamp: <2015-01-03 02:03:27 misho> *)
 
 BeginPackage["SLHA`"];
 
@@ -18,7 +19,8 @@ BeginPackage["SLHA`"];
 (* Usage Messages                                                         *)
 (* ---------------------------------------------------------------------- *)
 ReadSLHA::usage  = "ReadSLHA[filename] reads the SLHA file and returns SLHA data.";
-Data::usage      = "Data[SLHA, blockname, keys...] returns the corresponding data.";
+Data::usage      = "Data[SLHA, blockname, keys...] returns the corresponding data, or Null.";
+GetData::usage   = "GetData[SLHA, blockname, keys...] is similar to Data, but does not allow Null.";
 Decay::usage     = "Decay[SLHA, pid] returns decay data of the particle pid.";
 Width::usage     = "Width[SLHA, pid] returns the decay width of the particle pid.";
 Br::usage        = "Br[SLHA, pid, {daughters}] returns BR(pid -> daughters).";
@@ -106,10 +108,12 @@ ParseQRule[str_]:=Module[{Qmatch},
 (* ----------------------------------------------------------------------
       DATA
    ---------------------------------------------------------------------- *)
+Data::MultiBlocksFound = "Multi blocks with name `1` found.";
+Data::MultiColumnsFound = "Block `1` has multi column for `2`.";
 Data[SLHA_,blockname_,keys___]:=Module[{block,lines,keylist,keylength},
   block=Select[SLHA,#[[1]]==ToUpperCase[blockname]&];
-  If[Length[block]==0,Message[Data::BlockNotFound,blockname];Abort[]];
-  If[Length[block]>1,Message[Data::MultiBlocksFound,blockname]];
+  If[Length[block]==0,Return[]];
+  If[Length[block]>1,Message[Data::MultiBlocksFound,blockname];Abort[]];
   keylist={keys};
   keylength=Length[keylist];
   lines=Select[block[[1,3;;]],
@@ -117,16 +121,27 @@ Data[SLHA_,blockname_,keys___]:=Module[{block,lines,keylist,keylength},
       And[Length[#[[1]]]==keylength+1,#[[1,1;;keylength]]==keylist]&
     ]
   ];
-  If[Length[lines]==0,Message[Data::ColumnNotFound,blockname,keylist];Abort[]];
-  If[Length[lines]>1,Message[Data::MultiColumnsFound,blockname,keylist]];
-  lines[[1,1,-1]]
-]
+  If[Length[lines]==0,Return[]];
+  If[Length[lines]>1,Message[Data::MultiColumnsFound,blockname,keylist];Abort[]];
+  lines[[1,1,-1]]];
+
+GetData::BlockNotFound = "Block `1` required but not found.";
+GetData::ColumnNotFound = "Block `1` Column `2` required but not found.";
+GetData[SLHA_,blockname_,keys___] := Module[
+    {v = Data[SLHA, blockname, keys]},
+    If[v == Null,
+       If[Length[Select[SLHA,#[[1]]==ToUpperCase[blockname]&]] == 0,
+          Message[GetData::BlockNotFound,blockname],
+          Message[GetData::ColumnNotFound,blockname,{keys}]];
+       Abort[]];
+    v];
+
 Decay[SLHA_, pid_Integer] :=
   Module[{blockname, width, brs},
    blockname = "DECAY " <> ToString[pid];
    block = Select[SLHA, #[[1]] == ToUpperCase[blockname] &];
-   If[Length[block] == 0, Message[Data::BlockNotFound, blockname]; Abort[]];
-   If[Length[block] > 1, Message[Data::MultiBlocksFound, blockname]];
+   If[Length[block] == 0, Message[GetData::BlockNotFound, blockname]; Abort[]];
+   If[Length[block] > 1, Message[GetData::MultiBlocksFound, blockname]];
    width = "WIDTH" //. block[[1, 2]];
    brs = block[[1, 4 ;;, 1]];
    {width, {#[[3 ;;]], #[[1]]} & /@ brs}
