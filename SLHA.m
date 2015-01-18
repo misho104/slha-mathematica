@@ -1,5 +1,31 @@
 (* ::Package:: *)
+
 (* Time-Stamp: <2015-01-03 13:31:08 misho> *)
+
+(* :Context: SLHA` *)
+
+(* :Author: Sho Iwamoto *)
+
+(* :Summary:
+    Package to read and write SLHA files.
+*)
+
+(* :Copyright: 2012-2015 Sho Iwamoto *)
+
+(* :Package Version: 2.0beta *)
+
+(* :Mathematica Version: 10.0 *)
+
+(* :History:
+   Version 1.0 [Oct 2013, SI] Initial version.
+   Version 2.0 [Jan 2015, SI] ... implementing
+*)
+
+(* :Keywords: *)
+
+(* :Discussion: *)
+
+(* :Warning: *)
 
 BeginPackage["SLHA`"];
 
@@ -15,9 +41,8 @@ BeginPackage["SLHA`"];
    <DATA>         = List[Expression, Expression, ... ]
    ---------------------------------------------------------------------- *)
 
-(* ---------------------------------------------------------------------- *)
-(* Usage Messages                                                         *)
-(* ---------------------------------------------------------------------- *)
+(* Usage messages *)
+
 ReadSLHA::usage  = "ReadSLHA[filename] reads the SLHA file and returns SLHA data.";
 Data::usage      = "Data[SLHA, blockname, keys...] returns the corresponding data, or Null.";
 GetData::usage   = "GetData[SLHA, blockname, keys...] is similar to Data, but does not allow Null.";
@@ -205,8 +230,5 @@ BuildDataLine[blockname_,line_]:=Module[{q},
       IntegerPadding[line[[1,1]],6]<>"   "<>ToFString[line[[1,2]]]<>"   #"<>line[[2]]<>"\n"
 ]]
 End[];
-
 EndPackage[];
-
-
 
