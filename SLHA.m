@@ -219,7 +219,7 @@ BlockToString[block_] := Module[
     If[Not[IsBlock[block]], Message[SLHA::ClassError, "BlockToString"]; Abort[]];
     list = {
         StringPadding["BLOCK " <> block[NAME]
-                      <> If[MatchQ[block["Q"], _Missing], "", " Q = " <> ToFString[N[block["Q"]]]]
+                      <> If[MatchQ[block["Q"], _Missing], "", " Q= " <> ToFString[N[block["Q"]]]]
                       ,27] <> " " <> block["headcomment"] // StringTrim };
     list = Join[list, Module[
         { k = #,
@@ -229,7 +229,7 @@ BlockToString[block_] := Module[
           tmp},
         tmp = Which[
             block[NAME] === "MASS", " "<>IntegerPadding[k[[1]],9]<>"   "<>ToFString[v]<>"   "<>c,
-            StringQ[v] && n === 1, IntegerPadding[k[[1]],6]<>"   "<>StringPadding[v,30]<>c,
+            StringQ[v] && n === 1, IntegerPadding[k[[1]],6]<>"   "<>StringPadding[v,19]<>c,
             n === 0, "         "<>ToFString[v]<>"   "<>c,
             n === 1, IntegerPadding[k[[1]],6]<>"   "<>ToFString[v]<>"   "<>c,
             n === 2, " "<>IntegerPadding[k[[1]],2]<>IntegerPadding[k[[2]],3]<>"   "<>ToFString[v]<>"   "<>c,
