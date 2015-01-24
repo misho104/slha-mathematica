@@ -210,7 +210,7 @@ BlockGetValue[block_, v:_Integer..., IfMissing->i_] := Module[
        Which[
            ToUpperCase[i] === "MISSING", Missing[],
            ToUpperCase[i] === "ABORT", Message[SLHA::ValueNotFound, block[NAME], ToString[v]]; Abort[],
-           NumberQ[i], i,
+           NumericQ[i], i,
            True, Message[SLHA::InvalidIfMissing]; Abort[]]]];
 
 BlockKeys[block_] := Module[
