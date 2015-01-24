@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2015-01-20 16:23:17 misho> *)
+(* Time-Stamp: <2015-01-24 10:26:22 misho> *)
 
 (* :Context: SLHA` *)
 
@@ -85,8 +85,8 @@ SLHA::ClassError       = "Class error: `1`.";
 SLHA::MultipleBlock    = "Multiple block with name `1` found.";
 SLHA::BlockNotFound    = "Block `1` not found.";
 SLHA::ValueNotFound    = "Block `1` does not have value for `2`.";
-SLHA::InvalidIfMissing = "Invalid value is specified for option IfMissing."
-BlockToString::UnexpectedLineIgnored = "Unexpected line with key `1` and value `2` ignored."
+SLHA::InvalidIfMissing = "Invalid value is specified for option IfMissing.";
+BlockToString::UnexpectedLineIgnored = "Unexpected line with key `1` and value `2` ignored.";
 ReadSLHA::ParsedAsString     = "Non standard line found, parsed as string: `1`.";
 ReadSLHA::InvalidLine        = "Invalid lines found: `1`.";
 ReadSLHA::OrphanLine         = "Lines with no block found: `1`.";
@@ -262,7 +262,6 @@ DecayKeys[decay_] := Module[
 DecayToString[decay_] := Module[
     {keys, list, lens},
     If[Not[IsDecay[decay]], Message[SLHA::ClassError, "DecayToString"]; Abort[]];
-    Print[decay["keys"]];
     keys = Sort[#, Abs[#1] < Abs[#2] &] & /@ decay["keys"];
     lens = 2 + (Max[StringLength[ToString /@ #]] &/@ Transpose[PadRight[#, Max[Length/@keys]] &/@ keys]);
     list = { StringPadding["DECAY " <>
