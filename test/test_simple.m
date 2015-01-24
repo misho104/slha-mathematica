@@ -43,9 +43,13 @@ IsMissing[slha["NewBlock"]] // Print
 newblock = slha["NewBlock", IfMissing -> "create"];
 {IsMissing[slha["NewBlock"]] === False, newblock === slha["newblock"]} // Print
 
-Print["\n## Advanced handling of missing behaviours"];
-IsMissing[slha["nonexist"][1]] // Print
-IsMissing[slha["A"][999]] // Print
+Print["\n## Behaviors combination"];
+slha["NONEXIST"][10, IfMissing->\[Pi]] === \[Pi] // Print
+CheckAbort[slha["NONEXIST"][10, IfMissing -> "abort"], $Aborted] === $Aborted // Print
+slha["ANOTHERBLOCK"][10, IfMissing -> E] === E // Print
+IsMissing[slha["ANOTHERBLOCK"]["keys"]] // Print
+slha["ANOTHERBLOCK", IfMissing -> "create"][10, IfMissing -> \[Pi]] === \[Pi] // Print
+{IsMissing[slha["ANOTHERBLOCK"]] === False, slha["ANOTHERBLOCK"]["keys"] === {}} // Print
 
 Print["\n# Manipulating SLHA object"];
 Print["## Create and update"];
@@ -65,7 +69,7 @@ slha["alpha"][] === 0.123 // Print
 
 Print["\n## Delete"]
 
-Sort[slha["blocks"]] === Sort[{"A", "B", "C", "NEWBLOCK", "X", "Y", "ALPHA"}] // Print
+Sort[slha["blocks"]] === Sort[{"A", "B", "C", "NEWBLOCK", "ANOTHERBLOCK", "X", "Y", "ALPHA"}] // Print
 
 slha["Y"][100] = -1
 slha["Y"][101] = -2

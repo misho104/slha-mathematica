@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2015-01-24 13:13:52 misho> *)
+(* Time-Stamp: <2015-01-24 14:32:57 misho> *)
 
 (* :Context: SLHA` *)
 
@@ -156,7 +156,7 @@ SLHAGetBlock[slha_, name_String, OptionsPattern[]] := Module[
     If[Length[x] == 1,
        x[[1]],
        Which[
-           ToUpperCase[OptionValue[IfMissing]] === "MISSING",   Missing[],
+           ToUpperCase[OptionValue[IfMissing]] === "MISSING",   Missing["KeyAbsent", "BLOCKNAME"->name],
            ToUpperCase[OptionValue[IfMissing]] === "ABORT",  Message[SLHA::BlockNotFound, name]; Abort[],
            ToUpperCase[OptionValue[IfMissing]] === "CREATE", SLHAAdd[slha, NewBlock[ToUpperCase[name]]],
            True, Message[SLHA::InvalidIfMissing]; Abort[]]]];
@@ -168,7 +168,7 @@ SLHAGetDecay[slha_, pid_Integer, OptionsPattern[]] := Module[
     If[Length[x] == 1,
        x[[1]],
        Which[
-           ToUpperCase[OptionValue[IfMissing]] === "MISSING",   Missing[],
+           ToUpperCase[OptionValue[IfMissing]] === "MISSING",   Missing["KeyAbsent", "BLOCKNAME"->"Decay "<>ToString[pid]],
            ToUpperCase[OptionValue[IfMissing]] === "ABORT",  Message[SLHA::BlockNotFound, "Decay " <> ToString[pid]]; Abort[],
            ToUpperCase[OptionValue[IfMissing]] === "CREATE", SLHAAdd[slha, NewDecay[pid]],
            True, Message[SLHA::InvalidIfMissing]; Abort[]]]];
@@ -360,6 +360,14 @@ ParseQRule[str_]:=Module[
 (* --- helper functions for users --- *)
 
 IsMissing[obj_]  := Which[MatchQ[obj, _Missing], True, MatchQ[obj, _Symbol], False, True, IsMissing[Head[obj]]]; (* in order to return True for Missing[___][___] *)
+
+Unprotect[Missing];  (* Missing is modified. *)
+Missing["KeyAbsent", "BLOCKNAME"->b_][v:_Integer..., IfMissing->i_] := Which[
+    ToUpperCase[i] === "MISSING", Missing["KeyAbsent", {"BlockName"->b, "KEY"->{a}}],
+    ToUpperCase[i] === "ABORT",   Message[SLHA::ValueNotFound, b, ToString[v]]; Abort[],
+    NumericQ[i],                  i,
+    True, Message[SLHA::InvalidIfMissing]; Abort[]];
+Protect[Missing];
 
 Unprotect[Unset]; (* Unset is modified. *)
 Unset[s_[b_String]]           := If[IsMissing[s[b]],          $Failed, SLHADelete[s, s["block", b]]; Null] /; IsSLHA[s];
