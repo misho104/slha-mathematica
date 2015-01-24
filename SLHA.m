@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2015-01-24 10:30:45 misho> *)
+(* Time-Stamp: <2015-01-24 11:26:23 misho> *)
 
 (* :Context: SLHA` *)
 
@@ -62,7 +62,9 @@ block["<>M["c"]<>", "<> T["_Integer ..."] <> "] contains the comment string asso
 
 The following functions are defined in addition.
 block["<>M["keys"]<>"] returns a list of the keys associated to the BLOCK.
-block["<>M["tostring"]<>"] returns string expression of the BLOCK as a list of lines.";
+block["<>M["tostring"]<>", "<>T["(option)"]<>"] returns string expression of the BLOCK as a list of lines. Options are: Order->"<>T["list"]<>".";
+
+Order::usage = "Order is an option for block["<>M["tostring"]<>", which must be List[List[Integer...]...].";
 
 decay::usage = "SLHA package utilizes local variables "<>T["decay$xxx"]<>" as DECAY objects. Available operations are as follows.
 
@@ -86,6 +88,7 @@ SLHA::MultipleBlock    = "Multiple block with name `1` found.";
 SLHA::BlockNotFound    = "Block `1` not found.";
 SLHA::ValueNotFound    = "Block `1` does not have value for `2`.";
 SLHA::InvalidIfMissing = "Invalid value is specified for option IfMissing.";
+BlockToString::OrderOptionInvalid    = "Invalid value specified for the option 'Order'.";
 BlockToString::UnexpectedLineIgnored = "Unexpected line with key `1` and value `2` ignored.";
 ReadSLHA::ParsedAsString     = "Non standard line found, parsed as string: `1`.";
 ReadSLHA::InvalidLine        = "Invalid lines found: `1`.";
@@ -197,7 +200,7 @@ NewBlock[name_, headcomment_: ""] := Module[
     block["c", _Integer...]                = "";
     (* functions *)
     block["keys"]     := BlockKeys[block];
-    block["tostring"] := BlockToString[block];
+    block["tostring", opt:OptionsPattern[BlockToString]] := BlockToString[block, opt];
     block];
 
 BlockGetValue[block_, v:_Integer..., IfMissing->i_] := Module[
@@ -214,9 +217,16 @@ BlockKeys[block_] := Module[
     {keys = DownValues[block // Evaluate] //. RuleDelayed[_[_[k___]], _] :> {k}},
     Select[keys, (AllTrue[#, IntegerQ] && Not[MatchQ[block[Sequence@@#], _Missing]]) &] // Sort];
 
-BlockToString[block_] := Module[
-    {list, keys},
+Options[BlockToString] = {Order -> {}};
+BlockToString[block_, OptionsPattern[]] := Module[
+    {list, order, keys},
     If[Not[IsBlock[block]], Message[SLHA::ClassError, "BlockToString"]; Abort[]];
+    order = Which[MatchQ[#, List[_Integer ...]], #,
+                  MatchQ[#, _Integer], List[#],
+                  True, Message[BlockToString::OrderOptionInvalid]; Abort[]] &/@ OptionValue[Order];
+    order = Select[order, Not[MatchQ[block[Sequence@@#], _Missing]]&];
+    keys  = DeleteDuplicates[Join[order, BlockKeys[block]]];
+
     list = {
         StringPadding["BLOCK " <> block[NAME]
                       <> If[MatchQ[block["Q"], _Missing], "", " Q= " <> ToFString[N[block["Q"]]]]
@@ -236,7 +246,7 @@ BlockToString[block_] := Module[
             True,
             Message[BlockToString::UnexpectedLineIgnored, ToString[k], ToString[v]];
             "# Invalid line ignored here"];
-        StringTrim[tmp, RegularExpression[" *$"]]]& /@ BlockKeys[block]];
+        StringTrim[tmp, RegularExpression[" *$"]]]& /@ keys];
     list];
 
 (* Decay *)
