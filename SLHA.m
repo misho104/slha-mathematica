@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2015-01-24 11:26:23 misho> *)
+(* Time-Stamp: <2015-01-24 13:13:52 misho> *)
 
 (* :Context: SLHA` *)
 
@@ -34,9 +34,9 @@ BeginPackage["SLHA`"];
 
 (* Usage messages *)
 
-F[s_,f_] := "\!\(\*StyleBox[\""<>s<>"\", \""<>f<>"\"]\)";
-M[s_] := "\""<>F[s,"MR"]<>"\"";
-T[s_] := F[s,"TI"];
+F := "\!\(\*StyleBox[\""<>#1<>"\", \""<>#2<>"\"]\)" &;
+M := "\""<>F[#,"MR"]<>"\"" &;
+T := F[#,"TI"] &;
 
 ReadSLHA::usage  = "ReadSLHA["<>T["filename"]<>"] returns an SLHA object read from an SLHA file "<>T["filename"]<>".";
 IsMissing::usage = "IsMissing["<>T["object"]<>"] checks whether the head of "<>T["object"]<>" is 'Missing' or not. This check is performed recursively in order to be used when a value in a missing block is referred; i.e., so that IsMissing[Missing[___][___]] returns True.";
