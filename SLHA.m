@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2015-01-24 10:26:22 misho> *)
+(* Time-Stamp: <2015-01-24 10:30:45 misho> *)
 
 (* :Context: SLHA` *)
 
@@ -262,7 +262,7 @@ DecayKeys[decay_] := Module[
 DecayToString[decay_] := Module[
     {keys, list, lens},
     If[Not[IsDecay[decay]], Message[SLHA::ClassError, "DecayToString"]; Abort[]];
-    keys = Sort[#, Abs[#1] < Abs[#2] &] & /@ decay["keys"];
+    keys = Sort[#, Abs[#1] < Abs[#2] &] & /@ Sort[decay["keys"], decay[Sequence@@#1] > decay[Sequence@@#2] &];
     lens = 2 + (Max[StringLength[ToString /@ #]] &/@ Transpose[PadRight[#, Max[Length/@keys]] &/@ keys]);
     list = { StringPadding["DECAY " <>
                            IntegerPadding[decay[PID], 9] <> "   " <>
