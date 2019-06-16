@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2015-01-24 14:32:57 misho> *)
+(* Time-Stamp: <2019-06-12 09:57:22> *)
 
 (* :Context: SLHA` *)
 
@@ -109,6 +109,7 @@ ToFString[num_Real]:=Module[{m,e},
   {m,e}=If[num==0.,{0,1},MantissaExponent[N[num,9]]];
   " "<>ToString[PaddedForm[m*10,{9,8},NumberSigns->{"-"," "}]]<>"e"<>ToString[PaddedForm[e-1,2,NumberSigns->{"-","+"},SignPadding->True,NumberPadding->"0"]]];
 ToFString[num_Integer]:=StringPadding[IntegerPadding[num,11],16];
+ToFString[num_Rational]:=ToFString[N[num]];
 
 
 
