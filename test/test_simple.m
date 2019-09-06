@@ -1,6 +1,6 @@
 #!MathematicaScript -noinit -script
 
-Needs["SLHA`", "../slha.m"];
+Needs["SLHA`", "../SLHA.m"];
 
 Print["\n# Read SLHA file and its values"];
 slha = ReadSLHA["simple.slha"];
