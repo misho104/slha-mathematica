@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2019-06-12 09:57:22> *)
+(* Time-Stamp: <2019-09-07 18:52:49> *)
 
 (* :Context: SLHA` *)
 
@@ -304,13 +304,13 @@ ReadSLHA[inputfilename_] := Module[
             Null;
             ,
             ToUpperCase[data[[1]]] === "BLOCK",
-            If[length[data] < 2, Message[ReadSLHA::InvalidBlockLine, line]; Abort[]];
+            If[Length[data] < 2, Message[ReadSLHA::InvalidBlockLine, line]; Abort[]];
             block = slha["block", data[[2]], IfMissing->"Create"];
             block["headcomment"] = comment;
             If[Length[data] >= 3, block["Q"] = ParseQRule[StringJoin[ToString /@ data[[3;;]]]]];
             ,
             ToUpperCase[data[[1]]] === "DECAY",
-            If[length[data] != 3, Message[ReadSLHA::InvalidBlockLine, line]; Abort[]];
+            If[Length[data] != 3, Message[ReadSLHA::InvalidBlockLine, line]; Abort[]];
             {pid, rate} = ReadNumber[{data[[2]], data[[3]]}];
             If[Not[IntegerQ[pid] && NumberQ[rate]], Message[ReadSLHA::InvalidBlockLine, line]; Abort[]];
             block = slha["decay", pid, IfMissing->"Create"];
