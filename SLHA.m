@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2019-09-07 19:20:28> *)
+(* Time-Stamp: <2019-09-07 20:17:48> *)
 
 (* :Context: SLHA` *)
 
@@ -44,21 +44,21 @@ IfMissing::usage = "IfMissing is an option for objects with SLHA packages. Value
 For blocks, "<>M["missing"]<>" (default), "<>M["abort"]<>", or "<>M["create"]<>" can be specified.
 For values, "<>M["missing"]<>" (default), "<>M["abort"]<>", or numeric values can be specified; the numeric value is treated as the default value, i.e., if the item is missing, the value is returned.";
 
-slha::usage = "SLHA package utilizes local variables "<>T["slha$xxx"]<>" as SLHA objects. Available operations are as follows.
-slha["<>M["block"]<>", "<>T["name"]<>", "<>T["(option)"]<>"] returns a BLOCK object with the name "<>T["name"]<>". Options are: IfMissing->"<>T["value"]<>".
-slha["<>T["name"]<>", "<>T["(option)"]<>"] is a syntax sugar of slha["<>M["block"]<>", "<>T["name"]<>", "<>T["(option)"]<>"].
-slha["<>M["decay"]<>", "<>T["pid"]<>", "<>T["(option)"]<>"] returns a 'decay' object for the particle "<>T["pid"]<>". Options are: IfMissing->"<>T["value"]<>".
-slha["<>M["blocks"]<>"] returns a list of the names of the blocks in the SLHA object.
-slha["<>M["tostring"]<>"] returns string expression of the SLHA object as a list of lines.
-slha["<>M["writetofile"]<>", "<>T["filename"]<>"] writes out the SLHA object to the file.";
+slha$s::usage = "SLHA package utilizes local variables "<>T["slha$s(number)"]<>" as SLHA objects. Available operations are as follows.
+slha$s["<>M["block"]<>", "<>T["name"]<>", "<>T["(option)"]<>"] returns a BLOCK object with the name "<>T["name"]<>". Options are: IfMissing->"<>T["value"]<>".
+slha$s["<>T["name"]<>", "<>T["(option)"]<>"] is a syntax sugar of slha["<>M["block"]<>", "<>T["name"]<>", "<>T["(option)"]<>"].
+slha$s["<>M["decay"]<>", "<>T["pid"]<>", "<>T["(option)"]<>"] returns a 'decay' object for the particle "<>T["pid"]<>". Options are: IfMissing->"<>T["value"]<>".
+slha$s["<>M["blocks"]<>"] returns a list of the names of the blocks in the SLHA object.
+slha$s["<>M["tostring"]<>"] returns string expression of the SLHA object as a list of lines.
+slha$s["<>M["writetofile"]<>", "<>T["filename"]<>"] writes out the SLHA object to the file.";
 
-block::usage = "SLHA package utilizes local variables "<>T["block$xxx"]<>" as BLOCK objects.
+slha$b::usage = "SLHA package utilizes local variables "<>T["slha$b(number)"]<>" as BLOCK objects.
 
 The object can be modified by the following accessors.
-block["<>M["headcomment"]<>"] contains the comment string associated to the first line (beginning with \"BLOCK\") of the BLOCK.
-block["<>M["Q"]<>"] contains the Q-value of the BLOCK.
-block["<>T["key_Integer ..."]<>", "<>T["(option)"]<>"] contains the values associated to "<>T["key"]<>". Options are: IfMissing->"<>T["value"]<>".
-block["<>M["c"]<>", "<> T["_Integer ..."] <> "] contains the comment string associated to the value.
+slha$b["<>M["headcomment"]<>"] contains the comment string associated to the first line (beginning with \"BLOCK\") of the BLOCK.
+slha$b["<>M["Q"]<>"] contains the Q-value of the BLOCK.
+slha$b["<>T["key_Integer ..."]<>", "<>T["(option)"]<>"] contains the values associated to "<>T["key"]<>". Options are: IfMissing->"<>T["value"]<>".
+slha$b["<>M["c"]<>", "<> T["_Integer ..."] <> "] contains the comment string associated to the value.
 
 The following functions are defined in addition.
 block["<>M["keys"]<>"] returns a list of the keys associated to the BLOCK.
@@ -66,13 +66,13 @@ block["<>M["tostring"]<>", "<>T["(option)"]<>"] returns string expression of the
 
 Order::usage = "Order is an option for block["<>M["tostring"]<>", which must be List[List[Integer...]...].";
 
-decay::usage = "SLHA package utilizes local variables "<>T["decay$xxx"]<>" as DECAY objects. Available operations are as follows.
+slha$d::usage = "SLHA package utilizes local variables "<>T["slha$d(number)"]<>" as DECAY objects. Available operations are as follows.
 
 The object can be modified by the following accessors.
-decay["<>M["headcomment"]<>"] contains the comment string associated to the first line (beginning with \"DECAY\") of the DECAY.
-decay["<>M["rate"]<>"] contains the decay rate of the particle.
-decay["<>T["pid_Integer .."]<>", "<>T["(option)"]<>"] contains the branching ratio into "<>T["pid"]<>". Options are: IfMissing->"<>T["value"]<>".
-decay["<>M["c"]<>", "<> T["_Integer .."] <> "] contains the comment string associated to the value.
+slha$d["<>M["headcomment"]<>"] contains the comment string associated to the first line (beginning with \"DECAY\") of the DECAY.
+slha$d["<>M["rate"]<>"] contains the decay rate of the particle.
+slha$d["<>T["pid_Integer .."]<>", "<>T["(option)"]<>"] contains the branching ratio into "<>T["pid"]<>". Options are: IfMissing->"<>T["value"]<>".
+slha$d["<>M["c"]<>", "<> T["_Integer .."] <> "] contains the comment string associated to the value.
 
 The following functions are defined in addition.
 decay["<>M["pid"]<>"] returns the particle id of the mother particle.
@@ -123,7 +123,7 @@ IsDecay[obj_] := obj[TYPE] === "Decay";
 (* SLHA *)
 
 NewSLHA[] := Module[
-    {slha},
+    {slha=Unique["slha$s"]},
     slha[TYPE]   = "SLHA";
     slha[BLOCKS] = {};
     slha[DECAYS] = {};
@@ -190,7 +190,7 @@ SLHAToFile[slha_, filename_] := Module[
 (* Block *)
 
 NewBlock[name_, headcomment_: ""] := Module[
-    {block},
+    {block=Unique["slha$b"]},
     block[TYPE]                            = "Block";
     block[NAME]                            = name;
     (* public data, ready for manipulation *)
@@ -252,7 +252,7 @@ BlockToString[block_, OptionsPattern[]] := Module[
 
 (* Decay *)
 NewDecay[pid_, decayrate_: 0, headcomment_: ""] := Module[
-    {decay},
+    {decay=Unique["slha$d"]},
     SetAttributes[decay, Orderless];
     decay[TYPE]              = "Decay";
     decay[PID]               = pid;
