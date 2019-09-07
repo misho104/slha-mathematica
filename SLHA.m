@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2019-09-07 18:55:08> *)
+(* Time-Stamp: <2019-09-07 19:20:28> *)
 
 (* :Context: SLHA` *)
 
@@ -90,7 +90,7 @@ SLHA::ValueNotFound    = "Block `1` does not have value for `2`.";
 SLHA::InvalidIfMissing = "Invalid value is specified for option IfMissing.";
 BlockToString::OrderOptionInvalid    = "Invalid value specified for the option 'Order'.";
 BlockToString::UnexpectedLineIgnored = "Unexpected line with key `1` and value `2` ignored.";
-ReadSLHA::ParsedAsString     = "Non standard line found, parsed as string: `1`.";
+ReadSLHA::ParsedAsString     = "Non standard line <<`1`>> parsed as a string: (`2`)==\"`3`\".";
 ReadSLHA::InvalidLine        = "Invalid lines found: `1`.";
 ReadSLHA::OrphanLine         = "Lines with no block found: `1`.";
 ReadSLHA::InvalidBlockLine   = "Invalid lines found: `1`.";
@@ -102,7 +102,7 @@ Begin["`Private`"];
 (* --- Low Level Tools --- *)
 
 ReadNumber[x_List]   := ReadNumber /@ x;
-ReadNumber[x_String] := Module[{s=StringToStream[x], result}, result = Read[s, Number]; Close[s]; result];
+ReadNumber[x_String] := Module[{s=StringToStream[x], result}, result = Quiet[Read[s, Number], Read::readn]; Close[s]; result];
 StringPadding[str_,len_]:=If[StringLength[str]<len,StringJoin@@Prepend[Table[" ",{len-StringLength[str]}],str],str];
 IntegerPadding[int_,len_]:=Module[{s},s=ToString[int];If[StringLength[s]<len,StringJoin@@Append[Table[" ",{len-StringLength[s]}],s],s]];
 ToFString[num_Real]:=Module[{m,e},
@@ -330,7 +330,7 @@ ReadSLHA[inputfilename_] := Module[
                k = ReadNumber[data[[1]]];
                v = StringSplit[dataline//StringTrim, Whitespace, 2];
                If[Not[IntegerQ[k] && Length[v]==2], Message[ReadSLHA::InvalidLine, line]; Abort[]];
-               Message[ReadSLHA::ParsedAsString, line <> " -> " <> ToString[k] <> " = \"" <> v[[2]] <> "\"."];
+               Message[ReadSLHA::ParsedAsString, line, ToString[k], v[[2]]];
                v = v[[2]]];
             block[     Sequence@@k] = v;
             block["c", Sequence@@k] = comment;
