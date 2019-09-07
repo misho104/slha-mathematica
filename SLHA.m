@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2019-09-07 18:52:49> *)
+(* Time-Stamp: <2019-09-07 18:55:08> *)
 
 (* :Context: SLHA` *)
 
@@ -102,7 +102,7 @@ Begin["`Private`"];
 (* --- Low Level Tools --- *)
 
 ReadNumber[x_List]   := ReadNumber /@ x;
-ReadNumber[x_String] := Read[StringToStream[x],Number];
+ReadNumber[x_String] := Module[{s=StringToStream[x], result}, result = Read[s, Number]; Close[s]; result];
 StringPadding[str_,len_]:=If[StringLength[str]<len,StringJoin@@Prepend[Table[" ",{len-StringLength[str]}],str],str];
 IntegerPadding[int_,len_]:=Module[{s},s=ToString[int];If[StringLength[s]<len,StringJoin@@Append[Table[" ",{len-StringLength[s]}],s],s]];
 ToFString[num_Real]:=Module[{m,e},
