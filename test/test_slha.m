@@ -32,28 +32,24 @@ EndUnitTest[slha];
 
 
 BeginUnitTest["OneArgumentBlocks"];
-Do[
-    AssertEqual[f[slha, "oneargblock",  1],      10];
-    AssertEqual[f[slha, "OneArgBlock",  2],     -20];
-    AssertEqual[f[slha, "ONEARGBLOCK",  3],       0];
-    AssertEqual[f[slha, "ONEARGBLOCK", 11], -1522.2];
-    AssertEqual[f[slha, "ONEARGBLOCK", 12],     250];
-    AssertEqual[f[slha, "ONEARGBLOCK", 13],    0.02];
-    AssertEqual[f[slha, "ONEARGBLOCK", 14],  -0.003];
-    ,{f, {Data, GetData}}];
+AssertEqual[slha["oneargblock"][ 1],      10];
+AssertEqual[slha["OneArgBlock"][ 2],     -20];
+AssertEqual[slha["ONEARGBLOCK"][ 3],       0];
+AssertEqual[slha["ONEARGBLOCK"][11], -1522.2];
+AssertEqual[slha["ONEARGBLOCK"][12],     250];
+AssertEqual[slha["ONEARGBLOCK"][13],    0.02];
+AssertEqual[slha["ONEARGBLOCK"][14],  -0.003];
 EndUnitTest[];
 
 BeginUnitTest["NonExistingData"];
-Assert[Data[slha, "nonexistingblock"]          === Null];
-Assert[Data[slha, "nonexistingblock", 1]       === Null];
-Assert[Data[slha, "nonexistingblock", 1, 2, 3] === Null];
-Assert[Data[slha, "ONEARGBLOCK"]               === Null];
-Assert[Data[slha, "ONEARGBLOCK", 10000]        === Null];
-Assert[Data[slha, "ONEARGBLOCK", 1, 1]         === Null];
-AssertAbort[GetData[slha, "nonexistingblock"],   GetData::BlockNotFound];
-AssertAbort[GetData[slha, "ONEARGBLOCK"],        GetData::ColumnNotFound];
-AssertAbort[GetData[slha, "ONEARGBLOCK", 10000], GetData::ColumnNotFound];
-AssertAbort[GetData[slha, "ONEARGBLOCK", 1, 1],  GetData::ColumnNotFound];
+(*
+Assert[slha["nonexistingblock"]          === Null];
+Assert[slha["nonexistingblock"][1]       === Null];
+Assert[slha["nonexistingblock"][1, 2, 3] === Null];
+Assert[slha["ONEARGBLOCK"]               === Null];
+Assert[slha["ONEARGBLOCK"][10000]        === Null];
+Assert[slha["ONEARGBLOCK"][1, 1]         === Null];
+*)
 EndUnitTest[];
 
 (*
@@ -64,13 +60,13 @@ EndUnitTest[];
 *)
 
 BeginUnitTest["TwoArgumentBlocks"];
-Do[AssertEqual[GetData[slha,"doubleargblock", i, j], i*j], {i, 1, 2}, {j, 1, 2}];
+Do[AssertEqual[slha["doubleargblock"][i, j], i*j], {i, 1, 2}, {j, 1, 2}];
 EndUnitTest[];
 
 BeginUnitTest["StringBlocks"];
-AssertEqual[GetData[slha, "unusualcase", 1], "some calculator returns"];
-AssertEqual[GetData[slha, "unusualcase", 2], "these kind of error messages"];
-AssertEqual[GetData[slha, "unusualcase", 3], "which of course is not expected in slha format."];
+AssertEqual[slha["unusualcase"][1], "some calculator returns"];
+AssertEqual[slha["unusualcase"][2], "these kind of error messages"];
+AssertEqual[slha["unusualcase"][3], "which of course is not expected in slha format."];
 EndUnitTest[];
 
 (*
