@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2019-09-07 20:17:48> *)
+(* Time-Stamp: <2019-10-06 16:07:34> *)
 
 (* :Context: SLHA` *)
 
@@ -127,14 +127,15 @@ NewSLHA[] := Module[
     slha[TYPE]   = "SLHA";
     slha[BLOCKS] = {};
     slha[DECAYS] = {};
-    (* functions returning a reference for data manipulation*)
-    slha["block", f_String,  opt:OptionsPattern[SLHAGetBlock]] := SLHAGetBlock[slha, f, opt];
-    slha[f_String,           opt:OptionsPattern[SLHAGetBlock]] := SLHAGetBlock[slha, f, opt];
-    slha["decay", f_Integer, opt:OptionsPattern[SLHAGetDecay]] := SLHAGetDecay[slha, f, opt];
     (* functions *)
     slha["blocks"] := #[NAME] &/@ slha[BLOCKS];
     slha["tostring"] := SLHAToString[slha];
     slha["writetofile", filename_] := SLHAToFile[slha, filename];
+    slha["LSP", n_Integer:1] := GetLSP[slha, n];
+    (* functions returning a reference for data manipulation*)
+    slha["block", f_String,  opt:OptionsPattern[SLHAGetBlock]] := SLHAGetBlock[slha, f, opt];
+    slha[f_String,           opt:OptionsPattern[SLHAGetBlock]] := SLHAGetBlock[slha, f, opt];
+    slha["decay", f_Integer, opt:OptionsPattern[SLHAGetDecay]] := SLHAGetDecay[slha, f, opt];
     slha];
 
 SLHAAdd[slha_, block_] := Which[
@@ -355,6 +356,12 @@ ParseQRule[str_]:=Module[
        If[StringMatchQ[str,RegularExpression["^\\s*$"]],
           Null,
           Message[ReadSLHA::InvalidBlockLine,str]; Abort[]]]];
+
+GetLSP[slha_, n_Integer] := Module[{pids, masses},
+  pids = Select[slha["mass"]["keys"] // Flatten, 1000000 <= # < 3000000 &];
+  masses = Sort[Association[# -> slha["mass"][#] &/@ pids] // Abs];
+  Keys[masses][[n]]
+]
 
 
 
