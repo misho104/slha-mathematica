@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2019-10-06 16:07:34> *)
+(* Time-Stamp: <2021-10-15 14:40:57> *)
 
 (* :Context: SLHA` *)
 
@@ -87,7 +87,7 @@ SLHA::ClassError       = "Class error: `1`.";
 SLHA::MultipleBlock    = "Multiple block with name `1` found.";
 SLHA::BlockNotFound    = "Block `1` not found.";
 SLHA::ValueNotFound    = "Block `1` does not have value for `2`.";
-SLHA::InvalidIfMissing = "Invalid value is specified for option IfMissing.";
+SLHA::InvalidIfMissing = "Invalid value `1` is specified for option IfMissing.";
 BlockToString::OrderOptionInvalid    = "Invalid value specified for the option 'Order'.";
 BlockToString::UnexpectedLineIgnored = "Unexpected line with key `1` and value `2` ignored.";
 ReadSLHA::ParsedAsString     = "Non standard line <<`1`>> parsed as a string: (`2`)==\"`3`\".";
@@ -161,7 +161,7 @@ SLHAGetBlock[slha_, name_String, OptionsPattern[]] := Module[
            ToUpperCase[OptionValue[IfMissing]] === "MISSING",   Missing["KeyAbsent", "BLOCKNAME"->name],
            ToUpperCase[OptionValue[IfMissing]] === "ABORT",  Message[SLHA::BlockNotFound, name]; Abort[],
            ToUpperCase[OptionValue[IfMissing]] === "CREATE", SLHAAdd[slha, NewBlock[ToUpperCase[name]]],
-           True, Message[SLHA::InvalidIfMissing]; Abort[]]]];
+           True, Message[SLHA::InvalidIfMissing, OptionValue[IfMissing]]; Abort[]]]];
 
 Options[SLHAGetDecay] := {IfMissing -> "missing"};
 SLHAGetDecay[slha_, pid_Integer, OptionsPattern[]] := Module[
@@ -173,7 +173,7 @@ SLHAGetDecay[slha_, pid_Integer, OptionsPattern[]] := Module[
            ToUpperCase[OptionValue[IfMissing]] === "MISSING",   Missing["KeyAbsent", "BLOCKNAME"->"Decay "<>ToString[pid]],
            ToUpperCase[OptionValue[IfMissing]] === "ABORT",  Message[SLHA::BlockNotFound, "Decay " <> ToString[pid]]; Abort[],
            ToUpperCase[OptionValue[IfMissing]] === "CREATE", SLHAAdd[slha, NewDecay[pid]],
-           True, Message[SLHA::InvalidIfMissing]; Abort[]]]];
+           True, Message[SLHA::InvalidIfMissing, OptionValue[IfMissing]]; Abort[]]]];
 
 SLHAToString[slha_] := Module[
     {list},
@@ -213,7 +213,7 @@ BlockGetValue[block_, v:_Integer..., IfMissing->i_] := Module[
            ToUpperCase[i] === "MISSING", Missing[],
            ToUpperCase[i] === "ABORT", Message[SLHA::ValueNotFound, block[NAME], ToString[v]]; Abort[],
            NumericQ[i], i,
-           True, Message[SLHA::InvalidIfMissing]; Abort[]]]];
+           True, Message[SLHA::InvalidIfMissing, OptionValue[IfMissing]]; Abort[]]]];
 
 BlockKeys[block_] := Module[
     {keys = DownValues[block // Evaluate] //. RuleDelayed[_[_[k___]], _] :> {k}},
