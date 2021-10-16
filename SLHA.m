@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2021-10-16 16:06:47> *)
+(* Time-Stamp: <2021-10-17 1:03:12> *)
 
 (* :Context: SLHA` *)
 
@@ -244,7 +244,7 @@ BlockToString[block_, OptionsPattern[]] := Module[
           tmp},
         tmp = Which[
             block[NAME] === "MASS", " "<>IntegerPadding[k[[1]],9]<>"   "<>ToFString[v]<>"   "<>c,
-            StringQ[v] && n === 1, IntegerPadding[k[[1]],6]<>"   "<>StringPadding[v,19]<>c,
+            StringQ[v] && n === 1, IntegerPadding[k[[1]],6]<>"   "<>StringPadding[v,18]<>" "<>c,
             n === 0, "         "<>ToFString[v]<>"   "<>c,
             n === 1, IntegerPadding[k[[1]],6]<>"   "<>ToFString[v]<>"   "<>c,
             n === 2, " "<>IntegerPadding[k[[1]],2]<>IntegerPadding[k[[2]],3]<>"   "<>ToFString[v]<>"   "<>c,
