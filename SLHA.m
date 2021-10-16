@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Time-Stamp: <2021-10-15 14:40:57> *)
+(* Time-Stamp: <2021-10-16 16:06:47> *)
 
 (* :Context: SLHA` *)
 
@@ -106,7 +106,8 @@ ReadNumber[x_String] := Module[{s=StringToStream[x], result}, result = Quiet[Rea
 StringPadding[str_,len_]:=If[StringLength[str]<len,StringJoin@@Prepend[Table[" ",{len-StringLength[str]}],str],str];
 IntegerPadding[int_,len_]:=Module[{s},s=ToString[int];If[StringLength[s]<len,StringJoin@@Append[Table[" ",{len-StringLength[s]}],s],s]];
 ToFString[num_Real]:=Module[{m,e},
-  {m,e}=If[num==0.,{0,1},MantissaExponent[N[num,9]]];
+  If[num == 0., Return["0.00000000e+00"]];
+  {m,e} = MantissaExponent[N[num,9]];
   " "<>ToString[PaddedForm[m*10,{9,8},NumberSigns->{"-"," "}]]<>"e"<>ToString[PaddedForm[e-1,2,NumberSigns->{"-","+"},SignPadding->True,NumberPadding->"0"]]];
 ToFString[num_Integer]:=StringPadding[IntegerPadding[num,11],16];
 ToFString[num_Rational]:=ToFString[N[num]];
@@ -175,16 +176,18 @@ SLHAGetDecay[slha_, pid_Integer, OptionsPattern[]] := Module[
            ToUpperCase[OptionValue[IfMissing]] === "CREATE", SLHAAdd[slha, NewDecay[pid]],
            True, Message[SLHA::InvalidIfMissing, OptionValue[IfMissing]]; Abort[]]]];
 
-SLHAToString[slha_] := Module[
-    {list},
+SLHAToString[slha_] := Block[{},
     If[Not[IsSLHA[slha]], Message[SLHA::ClassError, "SLHAToString"]; Abort[]];
     Join[{#["tostring"]& /@ slha[BLOCKS],
           #["tostring"]& /@ slha[DECAYS]}]//Flatten];
 
-SLHAToFile[slha_, filename_] := Module[
-    {blocks = Select[slha["blocks"], Length[slha[#]["keys"]] > 0 &],
-     ofs = OpenWrite[filename,PageWidth->Infinity] },
-    WriteString[ofs, #<>"\n"] &/@ Flatten[Riffle[slha[#]["tostring"] & /@ blocks, "#"]];
+SLHAToFile[slha_, filename_] := Block[
+    {blocks = Select[slha["blocks"], Length[slha[#a]["keys"]] > 0 &],
+     ofs = OpenWrite[filename,PageWidth->Infinity],
+     lines},
+    lines = Join[slha[#]["tostring"] &/@ blocks,
+                 #["tostring"] &/@ slha[DECAYS]] // Riffle[#, "#"]&;
+    WriteString[ofs, #<>"\n"] &/@ Flatten[lines];
     Close[ofs] // AbsoluteFileName];
 
 
@@ -254,7 +257,7 @@ BlockToString[block_, OptionsPattern[]] := Module[
 (* Decay *)
 NewDecay[pid_, decayrate_: 0, headcomment_: ""] := Module[
     {decay=Unique["slha$d"]},
-    SetAttributes[decay, Orderless];
+    SetAttributes[Evaluate[decay], Orderless];
     decay[TYPE]              = "Decay";
     decay[PID]               = pid;
     decay["pid"]            := Evaluate[decay[PID]];
@@ -272,10 +275,10 @@ DecayKeys[decay_] := Module[
     Select[keys, (Length[#] > 1 && AllTrue[#, IntegerQ] && decay[Sequence@@#] > 0) &] // Sort];
 
 DecayToString[decay_] := Module[
-    {keys, list, lens},
+    {keys, list, lens = {2}},
     If[Not[IsDecay[decay]], Message[SLHA::ClassError, "DecayToString"]; Abort[]];
     keys = Sort[#, Abs[#1] < Abs[#2] &] & /@ Sort[decay["keys"], decay[Sequence@@#1] > decay[Sequence@@#2] &];
-    lens = 2 + (Max[StringLength[ToString /@ #]] &/@ Transpose[PadRight[#, Max[Length/@keys]] &/@ keys]);
+    If[Length[keys] > 0, lens = 2 + (Max[StringLength[ToString /@ #]] &/@ Transpose[PadRight[#, Max[Length/@keys]] &/@ keys])];
     list = { StringPadding["DECAY " <>
                            IntegerPadding[decay[PID], 9] <> "   " <>
                            ToFString[decay["rate"]] <> "   ", 30+Total[lens]]
